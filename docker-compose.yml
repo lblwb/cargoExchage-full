@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./backend  # путь к Dockerfile для Django
+    ports:
+      - "8000:8000"  # проброс портов, если необходимо
+    volumes:
+      - ./backend:/app/backend  # монтируем папку с Django приложением в контейнер
+    depends_on:
+      - db
+
+  frontend:
+    image: nginx:latest  # или другой веб-сервер для статики
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html  # монтируем статику фронтенда
+    ports:
+      - "8080:80"  # проброс портов на случай, если нужен доступ с хоста
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
