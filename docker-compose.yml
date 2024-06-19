@@ -1,24 +1,30 @@
-version: '3'
+version: '3.8'
 
 services:
   backend:
     build:
-      context: ./backend  # путь к Dockerfile для Django
+      context: ./backend  # Path to Dockerfile for Django
     ports:
-      - "8000:8000"  # проброс портов, если необходимо
+      - "8000:8000"  # Port forwarding if needed
     volumes:
-      - ./backend:/app/backend  # монтируем папку с Django приложением в контейнер
+      - ./backend:/app/backend  # Mount the Django app folder in the container
     depends_on:
       - db
+    networks:
+      - localnet
 
   frontend:
-    image: nginx:latest  # или другой веб-сервер для статики
+    image: nginx:latest  # Or another web server for static files
     volumes:
-      - ./frontend/dist:/usr/share/nginx/html  # монтируем статику фронтенда
+      - ./frontend/dist:/usr/share/nginx/html  # Mount the frontend static files
+      - ./nginx/conf.d:/etc/nginx/conf.d  # Mount the Nginx configuration
     ports:
-      - "8080:80"  # проброс портов на случай, если нужен доступ с хоста
+      - "80:80"  # Port forwarding for access from the host
     depends_on:
       - backend
+    networks:
+      - localnet
+      - webnet
 
   db:
     image: postgres:latest
@@ -28,6 +34,14 @@ services:
       POSTGRES_PASSWORD: mypassword
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - localnet
 
 volumes:
   db-data:
+
+networks:
+  localnet: 
+    external: false
+  webnet:
+    external: true
